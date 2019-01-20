@@ -1,0 +1,48 @@
+version: "3"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vapor-composer-image
+    environment:
+      SLEEP_LENGTH: 5
+      POSTGRES_HOST: db
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+      REDIS_HOST: redis
+    depends_on:
+      - "db"
+      - "redis"
+    networks:
+      - db_nw
+      - api_nw
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+    networks:
+      - db_nw
+  redis:
+    image: redis:alpine
+    networks:
+      - db_nw
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - api
+    networks:
+      - api_nw
+networks:
+  db_nw:
+    driver: bridge
+  api_nw:
+    driver: bridge
